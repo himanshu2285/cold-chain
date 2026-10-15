@@ -32,32 +32,40 @@ class AgentState(TypedDict):
 
 AGENT_LLM_SETTING = os.getenv("Agent_llm", "OLLAMA").strip().upper()
 
-if AGENT_LLM_SETTING == "OPENAI":
+if AGENT_LLM_SETTING == "OLLAMA":
+    ollama_model = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+    ollama_base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    print(f"🦙 Brain Mode: Utilizing Ollama Model [{ollama_model}] at {ollama_base_url}...")
+    
+    try:
+        from langchain_ollama import ChatOllama
+    except ImportError:
+        from langchain_community.chat_models import ChatOllama
+        
+    llm = ChatOllama(
+        model=ollama_model,
+        base_url=ollama_base_url,
+        temperature=0
+    )
+
+elif AGENT_LLM_SETTING == "OPENAI":
     print("🤖 Brain Mode: Utilizing Cloud OpenAI Reasoner (gpt-4o)...")
     from langchain_openai import ChatOpenAI
     llm = ChatOpenAI(model="gpt-4o", temperature=0)
 
 elif AGENT_LLM_SETTING == "DEEPSEEK":
-    print("🐳 Brain Mode: Utilizing Flagship DeepSeek Cloud Reasoner (deepseek-v4-pro)...")
+    print("🐳 Brain Mode: Utilizing Flagship DeepSeek Cloud Reasoner...")
     from langchain_openai import ChatOpenAI
-    
-    # Fully updated to match 2026 DeepSeek API parameters and endpoint contracts
     llm = ChatOpenAI(
-        model="deepseek-v4-flash",                           # deepseek-v4-flash, deepseek-v4-pro
+        model="deepseek-v4-flash",
         temperature=0,
         openai_api_key=os.getenv("DEEPSEEK_API_KEY"),
-        base_url="https://api.deepseek.com",     # Fixed connection string url endpoint
-        max_tokens=2048,                                   # Gives the deep reasoner plenty of output runway
-        # extra_body={
-        #     "thinking": {"type": "enabled"},              # Activates DeepSeek Deep-Thinking mode
-        #     "reasoning_effort": "high"                     # Drives maximal reasoning depth for logic maps
-        # }
+        base_url="https://api.deepseek.com",
+        max_tokens=2048,
     )
 
-else:  # FALLBACK / DEFAULT RUNNER MODE
-    print("🤗 Brain Mode: Local Fallback Activated. Binding Local Ollama (qwen2.5:7b)...")
-    from langchain_community.chat_models import ChatOllama
-    llm = ChatOllama(model="qwen2.5:7b", temperature=0, num_predict=1024)
+else:
+    raise ValueError(f"Unsupported Agent_llm setting: {AGENT_LLM_SETTING}")
 
 fde_tools = [query_telemetry_db, fetch_corridor_conditions, search_compliance_sop]
 llm_with_tools = llm.bind_tools(fde_tools)

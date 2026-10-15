@@ -131,6 +131,10 @@ Find any active shipments near Los Angeles (Latitude ~33.8, Longitude ~-118.1). 
 I'm a new dispatcher on the night shift. Can you quickly explain the difference between a Tier 1 and Tier 2 escalation?
 ```
 
+```
+What is the exact port congetion in Miami right now, and what does the SOP say we should do about it?
+```
+
 
 ## Phase 4
 Go to VS-code > CTRL + N > 'click on plain-text' and use 'sql'
